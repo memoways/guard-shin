@@ -5,7 +5,7 @@ require 'guard/shin/version'
 
 Gem::Specification.new do |spec|
   spec.name          = "guard-shin"
-  spec.version       = Guard::Shin::VERSION
+  spec.version       = Guard::ShinVersion::VERSION
   spec.authors       = ["Amos Wenger"]
   spec.email         = ["amos@memoways.com"]
   spec.summary       = %q{Recompile Shin code easily.}
@@ -20,4 +20,6 @@ Gem::Specification.new do |spec|
 
   spec.add_development_dependency "bundler", "~> 1.7"
   spec.add_development_dependency "rake", "~> 10.0"
+  spec.add_dependency "guard", ">= 2.0.0"
+  spec.add_dependency "shin"
 end

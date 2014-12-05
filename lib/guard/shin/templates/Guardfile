@@ -1,0 +1,3 @@
+
+guard :shin, :sourcepath => "src/cljs", :output => "public/js"
+
