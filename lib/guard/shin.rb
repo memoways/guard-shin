@@ -1,11 +1,13 @@
 require "guard"
 require "guard/plugin"
+require "guard/watcher"
 
 require "shin/compiler"
 require "benchmark"
 
 module Guard
   class Shin < Plugin
+    require "shin/cli"
 
     # Initializes a Guard plugin.
     # Don't do any work here, especially as Guard plugins get initialized even if they are not in an active group!
@@ -18,27 +20,39 @@ module Guard
     def initialize(options = {})
       super
       @options = options
+
+      options[:sourcepath].each do |path|
+        watchers << ::Guard::Watcher.new(%r{^#{ path }(.*\.clj(s?))$})
+      end
       puts "Shin: initialized!"
     end
 
     def start
-      puts "Shin: start!"
-    end
-
-    def stop
-      puts "Shin: stop!"
+      run_all
     end
 
     def run_all
-      path = @options[:main]
-      puts "Compiling #{path}..."
-      ms = Benchmark.realtime do
-        compiler.compile(File.read(path), :file => path)
+      run_on_changes files.reject {|f| macro?(f)}
+    end
+
+    def run_on_changes(paths)
+      paths.each do |path|
+        ms = Benchmark.realtime do
+          compiler.compile(File.read(path), :file => path)
+        end
+        puts "[Shin] Compiled #{path} in #{(1000 * ms).round(0)}ms".green
       end
-      puts "[Shin] #{path} compiled in #{(1000 * ms).round(0)}ms"
     end
 
     private
+
+    def macro?(path)
+      File.basename(path).downcase.end_with? '.clj'
+    end
+
+    def files
+      Watcher.match_files(self, Dir.glob('{,**/}*{,.clj(s?)}').uniq)
+    end
 
     def compiler
       @compiler ||= ::Shin::Compiler.new(@options)
@@ -46,3 +60,4 @@ module Guard
 
   end
 end
+
