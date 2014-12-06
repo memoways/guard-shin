@@ -37,10 +37,24 @@ module Guard
 
     def run_on_changes(paths)
       paths.each do |path|
-        ms = Benchmark.realtime do
-          compiler.compile(File.read(path), :file => path)
+        if path.downcase.end_with?('.clj')
+          puts "[Shin] Ignoring #{path} change since it's a macro module :(".brown
+          next
         end
-        puts "[Shin] Compiled #{path} in #{(1000 * ms).round(0)}ms".green
+
+        success = false
+        ms = Benchmark.realtime do
+          begin
+            compiler.compile(File.read(path), :file => path)
+            success = true
+          rescue ::Shin::SyntaxError => e
+            puts "[Shin] SyntaxError: #{e.message}".red
+          rescue => e
+            puts "[Shin] Error: #{e.message}".red
+            puts e.backtrace
+          end
+        end
+        puts "[Shin] Compiled #{path} in #{(1000 * ms).round(0)}ms".green if success
       end
     end
 
